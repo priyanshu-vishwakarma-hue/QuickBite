@@ -34,26 +34,25 @@ function TopRestaurant({ data = [], title }) {
     return (
         <div className="mt-14 w-full">
             <div className="flex justify-between items-center mt-5">
-                <h1 className="font-bold text-2xl">{title}</h1>
+                <h1 className="font-bold text-3xl text-slate-800">{title}</h1>
                 <div className="flex gap-3">
-                    <button onClick={() => handleScroll(-300)} disabled={!canScrollLeft} className="cursor-pointer rounded-full w-9 h-9 flex justify-center items-center bg-gray-200 disabled:bg-gray-50 disabled:cursor-not-allowed">
-                        <i className={`fi text-2xl mt-1 fi-rr-arrow-small-left ${canScrollLeft ? 'text-gray-800' : 'text-gray-300'}`}></i>
+                    <button onClick={() => handleScroll(-400)} disabled={!canScrollLeft} className="cursor-pointer rounded-full w-9 h-9 flex justify-center items-center bg-white border-2 border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                        <i className={`fi text-xl mt-1 fi-rr-arrow-small-left ${canScrollLeft ? 'text-slate-800' : 'text-slate-300'}`}></i>
                     </button>
-                    <button onClick={() => handleScroll(300)} disabled={!canScrollRight} className="cursor-pointer rounded-full w-9 h-9 flex justify-center items-center bg-gray-200 disabled:bg-gray-50 disabled:cursor-not-allowed">
-                        <i className={`fi text-2xl mt-1 fi-rr-arrow-small-right ${canScrollRight ? 'text-gray-800' : 'text-gray-300'}`}></i>
+                    <button onClick={() => handleScroll(400)} disabled={!canScrollRight} className="cursor-pointer rounded-full w-9 h-9 flex justify-center items-center bg-white border-2 border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                        <i className={`fi text-xl mt-1 fi-rr-arrow-small-right ${canScrollRight ? 'text-slate-800' : 'text-slate-300'}`}></i>
                     </button>
                 </div>
             </div>
 
-            <div ref={scrollContainer} className="flex mt-4 gap-5 w-full overflow-x-auto no-scrollbar">
+            {/* Added px-4 to this container to prevent clipping on hover */}
+            <div ref={scrollContainer} className="flex mt-6 gap-8 w-full overflow-x-auto no-scrollbar py-4 px-4">
                 {data.map(({ info, cta: { link } }) => (
-                    <div className="hover:scale-95 duration-300 flex-shrink-0" key={info.id}>
-                        <RestaurantCard {...info} link={link} />
-                    </div>
+                    <RestaurantCard {...info} link={link} key={info.id} />
                 ))}
             </div>
 
-            <hr className="border mt-10" />
+            <hr className="border-t-2 border-slate-100 mt-10" />
         </div>
     );
 }

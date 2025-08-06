@@ -1,188 +1,105 @@
-import React, { useContext, useState } from "react";
-import { CartContext } from "../context/contextApi";
-import { Link, useNavigate } from "react-router-dom";
+import React from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { clearCart, deleteItem } from "../utils/cartSlice";
 import toast from "react-hot-toast";
 import { toggleLogin } from "../utils/toogleSlice";
-
-let veg =
-    "https://www.pngkey.com/png/detail/261-2619381_chitr-veg-symbol-svg-veg-and-non-veg.png";
-let nonVeg =
-    "https://www.kindpng.com/picc/m/151-1515155_veg-icon-png-non-veg-symbol-png-transparent.png";
+import { veg, nonVeg } from "../utils/links";
 
 function Cart() {
-    // const { cartData, setCartData } = useContext(CartContext);
-    // console.log(cartData);
-
-    const navigate = useNavigate();
     const cartData = useSelector((state) => state.cartSlice.cartItems);
     const resInfo = useSelector((state) => state.cartSlice.resInfo);
-    // console.log(resInfo);
+    const userData = useSelector((state) => state.authSlice.userData);
     const dispatch = useDispatch();
-    // console.log(cartData);
-    // let totalPrice = 0;
 
-    // for(let i = 0 ; i < cartData.length ; i++ ){
-    //     totalPrice = totalPrice + cartData[i].price / 100 || cartData[i].defaultPrice / 100
-    // }
-
-    let totalPrice = cartData.reduce(
-        (acc, curVal) => acc + curVal.price / 100 || curVal.defaultPrice / 100,
+    const totalPrice = cartData.reduce(
+        (acc, curVal) => acc + (curVal.price / 100 || curVal.defaultPrice / 100),
         0
     );
 
-    function handleRemoveFromCart(i) {
+    function handleRemoveFromCart(index) {
         if (cartData.length > 1) {
             let newArr = [...cartData];
-            newArr.splice(i, 1);
-            // setCartData(newArr);
+            newArr.splice(index, 1);
             dispatch(deleteItem(newArr));
-            toast.success("Food removed");
+            toast.success("Item removed");
         } else {
-            handleClearCart();
-            toast.success("cart is cleared");
+            dispatch(clearCart());
+            toast.success("Cart cleared");
         }
     }
 
-    const userData = useSelector((state) => state.authSlice.userData);
-
-    function handleClearCart() {
-        dispatch(clearCart());
-        // setCartData([]);
-        // localStorage.setItem("cartData", JSON.stringify([]));
-        // localStorage.clear();
-    }
-    function handlePlaceOrder() {
+    const handleClearCart = () => dispatch(clearCart());
+    const handlePlaceOrder = () => {
         if (!userData) {
-            toast.error("login to place order");
-            dispatch(toggleLogin())
+            toast.error("Please login to place an order.");
+            dispatch(toggleLogin());
             return;
         }
-        toast.success("order placed");
-    }
+        toast.success("Order placed successfully!");
+        // Potentially clear cart or navigate to an order confirmation page
+    };
 
     if (cartData.length === 0) {
         return (
-            <div className="w-full">
-                <div className="w-[50%]  mx-auto">
-                    <h1>nothing is in the cart</h1>
-                    <Link to="/" className="bg-green-500 p-2 inline-block my-3">
-                        Go home
-                    </Link>
-                </div>
+            <div className="flex flex-col items-center justify-center h-[calc(100vh-10rem)] text-center">
+                 <img src="https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto/2xempty_cart_yfxml0" alt="Empty Cart" className="w-64" />
+                <h1 className="text-2xl font-bold mt-4">Your cart is empty</h1>
+                <p className="text-gray-500">You can go to home page to view more restaurants</p>
+                <Link to="/" className="bg-violet-600 text-white font-bold py-3 px-6 rounded-lg mt-6 hover:bg-violet-700 transition-colors">
+                    SEE RESTAURANTS NEAR YOU
+                </Link>
             </div>
         );
     }
 
     return (
-        <div className="w-full">
-            <div className="w-[95%] md:w-[800px]  mx-auto">
-                <Link to={`/restaurantMenu/${resInfo.id}`}>
-                <div className="my-10 flex gap-5">
-                    <img
-                        className="rounded-xl w-40 aspect-square"
-                        src={
-                            "https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_300,h_300,c_fit/" +
-                            resInfo.cloudinaryImageId
-                        }
-                        alt=""
-                    />
-                    <div>
-                        <p className="text-5xl border-b-2 border-black pb-3 ">{resInfo.name}</p>
-                        <p className="mt-3 text-xl ">{resInfo.areaName}</p>
+        <div className="w-full bg-gray-50 min-h-screen py-10">
+            <div className="w-full max-w-4xl mx-auto p-4 md:p-0">
+                <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <Link to={`/restaurantMenu/${resInfo.id}`}>
+                        <div className="flex items-center gap-5">
+                            <img className="rounded-lg w-24 h-24 object-cover" src={`https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_300,h_300,c_fit/${resInfo.cloudinaryImageId}`} alt={resInfo.name} />
+                            <div>
+                                <p className="text-3xl font-bold">{resInfo.name}</p>
+                                <p className="text-lg text-gray-500">{resInfo.areaName}</p>
+                            </div>
+                        </div>
+                    </Link>
+                </div>
+                
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    {cartData.map((item, index) => (
+                        <div key={item.id}>
+                            <div className="flex w-full my-5 justify-between">
+                                <div className="w-[70%]">
+                                    <img className="w-5" src={item.itemAttribute?.vegClassifier === "VEG" ? veg : nonVeg} alt="" />
+                                    <h2 className="font-bold text-lg">{item.name}</h2>
+                                    <p className="font-semibold text-base">₹{item.defaultPrice / 100 || item.price / 100}</p>
+                                    <p className="text-sm text-gray-400 mt-2 line-clamp-2">{item.description}</p>
+                                </div>
+                                <div className="w-[25%] relative">
+                                    <img className="rounded-lg aspect-square object-cover" src={`https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_300,h_300,c_fit/${item.imageId}`} alt="" />
+                                    <button onClick={() => handleRemoveFromCart(index)} className="absolute bottom-[-15px] left-1/2 -translate-x-1/2 bg-red-500 text-white text-sm font-bold rounded-lg px-4 py-1 shadow-md hover:bg-red-600">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                            {index < cartData.length - 1 && <hr className="my-4" />}
+                        </div>
+                    ))}
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+                    <h2 className="text-2xl font-bold">Total: <span className="text-violet-600">₹{totalPrice.toFixed(2)}</span></h2>
+                    <div className="flex justify-between mt-6">
+                        <button onClick={handlePlaceOrder} className="w-1/2 bg-violet-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-violet-700 transition-colors">
+                            Place Order
+                        </button>
+                        <button onClick={handleClearCart} className="w-1/2 ml-4 border border-red-500 text-red-500 font-bold py-3 px-6 rounded-lg hover:bg-red-500 hover:text-white transition-colors">
+                            Clear Cart
+                        </button>
                     </div>
-                </div>
-                </Link>
-                <hr  className="my-5 border-2"/>
-                <div>
-                    {cartData.map(
-                        (
-                            {
-                                name,
-                                defaultPrice,
-                                price,
-                                itemAttribute,
-                                ratings,
-                                description = "",
-                                imageId,
-                            },
-                        ) => {
-                            // const [isMore, setIsMore] = useState(false);
-
-                            let trimDes = description.substring(0, 138) + "...";
-                            return (
-                                <>
-                                    <div key={imageId} className="flex w-full my-5 justify-between min-h-[182px]">
-                                        <div className="w-[55%] md:w-[70%]">
-                                            <img
-                                                className="w-5 rounded-sm"
-                                                src={itemAttribute && itemAttribute.vegClassifier == "VEG" ? veg : nonVeg}
-                                                alt=""
-                                                srcset=""
-                                            />
-                                            <h2 className="font-bold text-lg">
-                                                {name}
-                                            </h2>
-                                            <p className="font-bold text-lg">
-                                                ₹
-                                                {defaultPrice / 100 ||
-                                                    price / 100}{" "}
-                                            </p>
-
-                                            {ratings && <div className="flex items-center gap-1">
-                                                {" "}
-                                                <i
-                                                    className={
-                                                        "fi mt-1 text-xl fi-ss-star"
-                                                    }
-                                                ></i>{" "}
-                                                <span>
-                                                    {ratings.aggregatedRating.rating} ({ratings.aggregatedRating.ratingCountV2})
-                                                </span>
-                                            </div>}
-
-                                            <div className="line-clamp-2">{description}</div>
-
-                                        </div>
-                                        <div className="w-[40%] md:w-[20%] relative h-full">
-                                            <img
-                                                className="rounded-xl aspect-square"
-                                                src={
-                                                    "https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_300,h_300,c_fit/" +
-                                                    imageId
-                                                }
-                                                alt=""
-                                            />
-                                            <button
-                                                onClick={handleRemoveFromCart}
-                                                className="bg-white absolute bottom-[-20px] left-1/2 -translate-x-1/2 text-base text-red-500 font-bold rounded-xl border px-5 py-2 drop-shadow"
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <hr className="my-10" />
-                                </>
-                            );
-                        }
-                    )}
-                </div>
-
-                <h1 className="text-2xl">Total - <span className="font-bold">₹{totalPrice}</span></h1>
-                <div className="flex justify-between">
-                    <button
-                        onClick={handlePlaceOrder}
-                        className="p-3 bg-green-600 rounded-lg my-7"
-                    >
-                        Place order
-                    </button>
-                    <button
-                        onClick={handleClearCart}
-                        className="p-3 bg-green-600 rounded-lg my-7"
-                    >
-                        clear cart
-                    </button>
                 </div>
             </div>
         </div>
